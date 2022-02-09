@@ -95,7 +95,7 @@
 
 (define (add-classes cls env)
   (if (empty? cls) env
-  (add-classes (cdr cls) (value-of-class (car cls) env))))
+  (list (value-of-class (car cls) env) (add-classes (cdr cls) env))))
 
 ;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
@@ -105,3 +105,6 @@
 
 (define x2 '(classes (class classe1 extends object (a b c))))
 ;(value-of x2 empty-env-class)
+
+;((classe1 classe2) (fields (a 0 (b 0 (c 0 ()))) ('(object))) ('(object)))
+                   
