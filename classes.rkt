@@ -44,7 +44,7 @@
                                (value-of (caddr exp) Δ) (value-of (cadddr exp) Δ))]
         [(equal? type 'proc) (proc-val (cadr exp) (caddr exp) Δ)]
         [(equal? type 'call) (apply-proc (value-of (cadr exp) Δ) (value-of (caddr exp) Δ))]
-        ;[(equal? type 'class) ()]
+        [(equal? type 'classes) (add-classes (cdr exp) Δ)]
         [else (error "operação não implementada")]))
 
 ; Especificação do comportamento de programas
@@ -53,24 +53,41 @@
 ;Definição da semantica de classes
 ;'(classes '(class A extends object '(Fields) '(Methods)) '(class B extends A '(Fields) '(Methods)))
 
-(define (value-of-fields cls env)
-1
+;Comecei a escrever daqui pra baixo vvvvvvvvvvvvvvv
+
+;Trocar env é uma lista
+(define empty-env-class '('(object)))
+
+(define (extend-env-class var value env)
+  (list 'extend-end-cls var value env)
   )
+
+(define (apply-env-class env var)
+  (if (equal? 'empty-env-class (car env)) #f
+      (if (equal? var (cadr env)) (caddr env)
+          (apply-env-class (cadddr env) var))
+      )
+  )
+
+(define (value-of-fields cls env)
+(if (empty? cls) env
+    (extend-env-class (car cls) 0 (value-of-fields (cdr cls) env))
+    ))
 
 (define (value-of-methods cls env)
 2
   )
 
-;Trocar extend-env para criar uma lista se baseando no exemplo de ambiente procedural
+;Coloca cada valor de fields com valor nulo
 (define (value-of-definition cls env)
 (if (empty? cls) env
-  (extend-env (car cls) 0 env))
+  (extend-env-class 'fields (value-of-fields (car cls) env) env))
   )
 
 ;'(class A extends object ... )
 ;Associa '(A object) com Fields e Methods
 (define (value-of-class cls env)
- (extend-env '((cadr cls) (cadddr cls)) (value-of-definition cls env) env)
+ (extend-env-class '((cadr cls) (cadddr cls)) (value-of-definition (cddddr cls) env) env)
   )
 
 ;'(classes '(A) '(B))
@@ -80,5 +97,9 @@
   (if (empty? cls) env
   (add-classes (cdr cls) (value-of-class (car cls) env))))
 
-;(define x1 '('prog '(classes '(class a extends object '(a b c) '('('proc '() ) ))))
+;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
+
+(define x1 '(classes (class classe1 extends object (a b c))))
+(value-of x1 empty-env-class)
+;(value-of-program x1 empty-env-class)
