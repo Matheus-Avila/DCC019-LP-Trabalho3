@@ -59,7 +59,7 @@
 (define empty-env-class '('(object)))
 
 (define (extend-env-class var value env)
-  (list 'extend-end-cls var value env)
+  (list var value env)
   )
 
 (define (apply-env-class env var)
@@ -70,7 +70,7 @@
   )
 
 (define (value-of-fields cls env)
-(if (empty? cls) env
+(if (empty? cls) '()
     (extend-env-class (car cls) 0 (value-of-fields (cdr cls) env))
     ))
 
@@ -87,7 +87,7 @@
 ;'(class A extends object ... )
 ;Associa '(A object) com Fields e Methods
 (define (value-of-class cls env)
- (extend-env-class '((cadr cls) (cadddr cls)) (value-of-definition (cddddr cls) env) env)
+ (extend-env-class (list (cadr cls) (cadddr cls)) (value-of-definition (cddddr cls) env) env)
   )
 
 ;'(classes '(A) '(B))
@@ -100,6 +100,8 @@
 ;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
 
-(define x1 '(classes (class classe1 extends object (a b c))))
+(define x1 '(classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f)) ))
 (value-of x1 empty-env-class)
-;(value-of-program x1 empty-env-class)
+
+(define x2 '(classes (class classe1 extends object (a b c))))
+;(value-of x2 empty-env-class)
