@@ -56,14 +56,15 @@
 ;Comecei a escrever daqui pra baixo vvvvvvvvvvvvvvv
 
 ;Trocar env é uma lista
-(define empty-env-class '('(object)))
+;(define empty-env-class '(object))
+(define empty-env-class empty)
 
 (define (extend-env-class var value env)
   (list var value env)
   )
 
 (define (apply-env-class env var)
-  (if (equal? 'empty-env-class (car env)) #f
+  (if (equal? 'empty-env-class (car env)) (error "Env vazio!")
       (if (equal? var (cadr env)) (caddr env)
           (apply-env-class (cadddr env) var))
       )
@@ -104,7 +105,7 @@
 (value-of x1 empty-env-class)
 
 (define x2 '(classes (class classe1 extends object (a b c))))
-;(value-of x2 empty-env-class)
+(value-of x2 empty-env-class)
 
 ;((classe1 classe2) (fields (a 0 (b 0 (c 0 ()))) ('(object))) ('(object)))
                    
