@@ -47,6 +47,7 @@
         [(equal? type 'classes) (add-classes (cdr exp) Δ)]
         [(equal? type 'main_prog) (value-of (caddr exp) (value-of (cadr exp) Δ))]
         [(equal? type 'new) (new-instance (cadr exp) Δ)]
+        [(equal? type 'set-val) (set-field (cadr exp) (caddr exp) Δ)]
         [(equal? type 'display) (display (cadr exp))]
         [else (error type)]))
 
@@ -102,7 +103,7 @@
   (list (value-of-class (car cls) env) (add-classes (cdr cls) env) '(object))))
 
 ;itc = classe
-;(caaar env) = Nome da classe
+;(caaar env) = Nome da classe que estou olhando agora
 ;(cdar env) = Lista com os Fields da classe
 (define
 (new-instance itc env)
@@ -111,10 +112,20 @@
   )
 )
 
+;set
+(define
+  (set-field fld val env)
+  (if (empty? env) (error "Valor nao existe nessa instancia")
+  (if (equal? fld (car env)) (list fld val (caddr env)) ;"troca o valor associado a fld para val"
+   (set-field fld val (caddr env)) )
+  )
+  )
+
 ;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
+(define exemploDeErro '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
 
-(define x1 '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let a (new classe1) (display a) )))
+(define x1 '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
 (value-of x1 empty-env-class)
 
 (define x2 '(classes (class classe1 extends object (a b c))))
