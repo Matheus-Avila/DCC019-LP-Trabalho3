@@ -45,7 +45,10 @@
         [(equal? type 'proc) (proc-val (cadr exp) (caddr exp) Δ)]
         [(equal? type 'call) (apply-proc (value-of (cadr exp) Δ) (value-of (caddr exp) Δ))]
         [(equal? type 'classes) (add-classes (cdr exp) Δ)]
-        [else (error "operação não implementada")]))
+        [(equal? type 'main_prog) (value-of (caddr exp) (value-of (cadr exp) Δ))]
+        [(equal? type 'new) (new-instance (cadr exp) Δ)]
+        [(equal? type 'display) (display (cadr exp))]
+        [else (error type)]))
 
 ; Especificação do comportamento de programas
 (define (value-of-program prog)
@@ -96,16 +99,26 @@
 
 (define (add-classes cls env)
   (if (empty? cls) env
-  (list (value-of-class (car cls) env) (add-classes (cdr cls) env))))
+  (list (value-of-class (car cls) env) (add-classes (cdr cls) env) '(object))))
+
+;itc = classe
+;(caaar env) = Nome da classe
+;(cdar env) = Lista com os Fields da classe
+(define
+(new-instance itc env)
+  (if (empty? env) (error "Nao existe essa classe!!")
+  (if (equal? itc (caaar env)) (cdar env) (new-instance itc (cdr env)))
+  )
+)
 
 ;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
 
-(define x1 '(classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f)) ))
+(define x1 '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let a (new classe1) (display a) )))
 (value-of x1 empty-env-class)
 
 (define x2 '(classes (class classe1 extends object (a b c))))
-(value-of x2 empty-env-class)
+;(value-of x2 empty-env-class)
 
 ;((classe1 classe2) (fields (a 0 (b 0 (c 0 ()))) ('(object))) ('(object)))
                    
