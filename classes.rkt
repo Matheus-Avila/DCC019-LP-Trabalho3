@@ -49,6 +49,7 @@
         [(equal? type 'main_prog) (value-of (caddr exp) (value-of (cadr exp) Δ))]
         [(equal? type 'new) (new-instance (cadr exp) Δ)]
         [(equal? type 'set-val) (set-field (cadr exp) (caddr exp) Δ)]
+        [(equal? type 'send) (send (cadr exp) (caddr exp) Δ)]
         [(equal? type 'display) (display (cadr exp))]
         [else (error type)]))
 
@@ -59,6 +60,22 @@
 ;Comecei a escrever daqui pra baixo vvvvvvvvvvvvvvv
 ;Definição da semantica de classes
 ;'(classes '(class A extends object '(Fields) '(Methods)) '(class B extends A '(Fields) '(Methods)))
+
+(define (send cls fld env)
+  (if (and (empty? cls) (empty? env))
+      (error "O campo escolhido nao é uma variável nem um método")
+      (if (empty? cls)
+          (if (equal? fld (car env))
+              (cadr env)
+              (send cls fld (cddr env))
+          )
+          (if (equal? fld (car cls))
+              (cadr cls)
+              (send (cddr cls) fld env)
+          )
+      )
+   )
+)
 
 (define empty-env-class empty)
 
@@ -143,9 +160,10 @@
 ;(value-of exemploDeErro empty-env-class)
 
 (define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
-(value-of mudarCampo empty-env-class)
+;(value-of mudarCampo empty-env-class)
 
 (define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
 ;(value-of criacaoDeClasse empty-env-class)
 
 (define criacaoMetodos '(classes (class classe1 extends object (a b c d (proc x (dif (var x) (lit 5)))))))
+(value-of criacaoMetodos empty-env-class)
