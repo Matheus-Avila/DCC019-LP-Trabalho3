@@ -1,5 +1,6 @@
 #lang racket
-
+;Matheus Avila Moreira de Paula 201565191C
+;Leonardo Azalim de Oliveira 201965251C
 (define empty-env
   (lambda (var)
     (error "No bind")))
@@ -25,9 +26,9 @@
 
 ; Escopo Dinâmico
 ; proc-val :: Var x Expr -> Proc
-#;(define (proc-val var exp)
-  (lambda (val Δ)
-    (value-of exp (extend-env var val Δ))))
+;(define (proc-val var exp)
+;  (lambda (val Δ)
+;    (value-of exp (extend-env var val Δ))))
 
 ; apply-proc :: Proc x ExpVal x Env -> ExpVal
 #;(define (apply-proc proc val Δ)
@@ -54,13 +55,11 @@
 ; Especificação do comportamento de programas
 (define (value-of-program prog)
   (value-of (cadr prog) init-env))
+
+;Comecei a escrever daqui pra baixo vvvvvvvvvvvvvvv
 ;Definição da semantica de classes
 ;'(classes '(class A extends object '(Fields) '(Methods)) '(class B extends A '(Fields) '(Methods)))
 
-;Comecei a escrever daqui pra baixo vvvvvvvvvvvvvvv
-
-;Trocar env é uma lista
-;(define empty-env-class '(object))
 (define empty-env-class empty)
 
 (define (extend-env-class var value env)
@@ -74,13 +73,27 @@
       )
   )
 
-(define (value-of-fields cls env)
-(if (empty? cls) '()
-    (extend-env-class (car cls) 0 (value-of-fields (cdr cls) env))
+(define (value-of-fields2 cls env)
+(if (empty? cls) '() ;(value-of-methods (cdr cls) env) <- isso tá errado. Tenho que ver como fazer a mudança entre fields e metodos
+    (extend-env-class (car cls) '(lit 0) (value-of-fields (cdr cls) env));trocar lit 0 por 0 se der errado
     ))
 
+
+;Se o 2 elemento for uma lista que comeca com proc extend-env-class o field com o value of do proc. CC faz o que já tá escrito
+(define (value-of-fields cls env)
+(if (empty? cls)
+    '() ;(value-of-methods (cdr cls) env) <- isso tá errado. Tenho que ver como fazer a mudança entre fields e metodos
+    (if (and (list? (cadr cls)) (equal? (caadr cls) 'proc))
+        (extend-env-class (car cls) (value-of (cadr cls) env) (value-of-fields (cddr cls) env) ) 
+        (extend-env-class (car cls) '(lit 0) (value-of-fields (cdr cls) env));trocar lit 0 por 0 se der errado
+    )
+  )
+)
+
 (define (value-of-methods cls env)
-2
+(if (empty? cls) '()
+    (extend-env-class (car cls) (value-of (list 'proc (cadr cls)) env) (value-of-fields (cdr cls) env))
+    )
   )
 
 ;Coloca cada valor de fields com valor nulo
@@ -123,13 +136,16 @@
 
 ;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
+(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display c1) )))
+;(value-of exemploDisplay empty-env-class)
+
 (define exemploDeErro '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
+;(value-of exemploDeErro empty-env-class)
 
-(define x1 '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
-(value-of x1 empty-env-class)
+(define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
+(value-of mudarCampo empty-env-class)
 
-(define x2 '(classes (class classe1 extends object (a b c))))
-;(value-of x2 empty-env-class)
+(define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
+;(value-of criacaoDeClasse empty-env-class)
 
-;((classe1 classe2) (fields (a 0 (b 0 (c 0 ()))) ('(object))) ('(object)))
-                   
+(define criacaoMetodos '(classes (class classe1 extends object (a b c d (proc x (dif (var x) (lit 5)))))))
