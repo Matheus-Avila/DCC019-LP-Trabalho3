@@ -97,16 +97,16 @@
   )
 
 ;Funcao backup. Remover se a função que trata fields e methods como um so der certo
-(define (value-of-fields2 cls env)
+(define (value-of-fields cls pai env)
 (if (empty? cls) '()
-    (extend-env-class (car cls) '(lit 0) (value-of-fields (cdr cls) env));trocar lit 0 por 0 se der errado
+    (extend-env-class (car cls) '(lit 0) (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
     ))
 
 
 ;Se o 2 elemento for uma lista que comeca com proc extend-env-class o field com o value of do proc. CC faz o que já tá escrito
-(define (value-of-fields cls pai env)
+(define (value-of-fields2 cls pai env)
 (if (empty? cls)
-    '() ;(value-of-methods (cdr cls) env) <- isso tá errado. Tenho que ver como fazer a mudança entre fields e metodos
+    '()
     (if (and (list? (cadr cls)) (equal? (caadr cls) 'proc))
         (extend-env-class (car cls) (value-of (cadr cls) env) (value-of-fields (cddr cls) pai env) )
         (if (and (list? (cadr cls)) (equal? (caadr cls) 'super))
@@ -148,7 +148,7 @@
 ;(cdar env) = Lista com os Fields da classe
 (define
 (new-instance itc env)
-  (if (empty? env) (error "Nao existe essa classe!!")
+  (if (equal? env '((object))) (error "Nao existe essa classe!!")
   (if (equal? itc (caaar env)) (cdar env) (new-instance itc (cdr env)))
   )
 )
@@ -164,11 +164,11 @@
 
 ;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
-(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display (new classe1)) )))
-;(value-of exemploDisplay empty-env-class)
+(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display (c1)) )))
+(value-of exemploDisplay empty-env-class)
 
 (define exemploDeErro '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
-(value-of exemploDeErro empty-env-class)
+;(value-of exemploDeErro empty-env-class)
 
 (define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
 ;(value-of mudarCampo empty-env-class)
