@@ -164,8 +164,8 @@
 
 ;(define x1 '(classes (class classe1 extends object (a b c) ))
 ;  )
-(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display (c1)) )))
-(value-of exemploDisplay empty-env-class)
+(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "o objeto foi criado!") )))
+;(value-of exemploDisplay empty-env-class)
 
 (define exemploDeErro '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
 ;(value-of exemploDeErro empty-env-class)
@@ -174,7 +174,7 @@
 ;(value-of mudarCampo empty-env-class)
 
 (define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
-;(value-of criacaoDeClasse empty-env-class)
+(value-of criacaoDeClasse empty-env-class)
 
 (define criacaoMetodos '(classes (class classe1 extends object (a b c d (proc x (dif (var x) (lit 5)))))))
-(value-of criacaoMetodos empty-env-class)
+;(value-of criacaoMetodos empty-env-class)
