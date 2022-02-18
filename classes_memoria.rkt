@@ -150,14 +150,16 @@
 (new-instance obj env addr-free)
   (if (equal? env '((object))) (error "Nao existe essa classe!!")
   (if (equal? obj (caaar env)) (begin (insert-in-memory (cadr (cadar env))) (return-instance (cadr (cadar env)) addr-free))
-      (new-instance obj (cdr env) addr-free))
+      (new-instance obj (cadr env) addr-free))
   )
 )
+
 ;Retorna para o corpo principal da funcao uma lista com o inicio da instancia e o mapeamento da pos de cada campo
 (define
 (return-instance cls addr-free)
+  ;(display cls)
   (if (empty? cls) '()
-  (list (car cls) addr-free (return-instance (cdr cls) (+ addr-free 1)))
+  (list (car cls) addr-free (return-instance (caddr cls) (+ addr-free 1)))
   )
 )
 
@@ -207,18 +209,18 @@
   '(main_prog (classes (class classe1 extends classe2 (a b c))
                        (class classe2 extends object (d e f)))
               (let c1 (new classe1)
-                (begin (display "\nValor de a na intancia c1: ") (set-val a 5 c1) (display "\nValor de b na intancia c1: ") (set-val b 1 c1)
-                       (display "\nValor de a na intancia c1: ")
-                       (send a c1)
-                       (display "\nValor de b na intancia c1: ")
-                       (send b c1)
+                (begin (set-val a 5 c1) (set-val b 1 c1)
+                       (display "\nDiferença entre os valores 'a' e 'b' na intancia c1: ")
+                       (dif (send a c1) (send b c1))
                        ))))
-;(display "\n- Exemplo pegaCampos:\n") (value-of pegaCampos empty-env-class)
+(display "\n- Exemplo pegaCampos:\n") (value-of pegaCampos empty-env-class)
 
-
-(define newCampo
+(define visualizaObjeto
   '(main_prog (classes (class classe1 extends classe2 (a b c))
                        (class classe2 extends object (d e f)))
-              (new classe1)
+              (begin
+                (new classe1)
+                (new classe2)
+                )
                 ))
-(display "\n- Exemplo newCampo:\n") (value-of newCampo empty-env-class)
+;(display "\n- Exemplo visualizaObjeto:\n") (value-of visualizaObjeto empty-env-class)
