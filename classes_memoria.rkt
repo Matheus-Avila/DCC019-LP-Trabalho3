@@ -147,11 +147,10 @@
 ;(cdar env) = Lista com os Fields da classe
 ; (cadar env) = (fields (a 0 (b 0 (c 0 ()))) ())
 (define
-(new-instance itc env addr-free)
+(new-instance obj env addr-free)
   (if (equal? env '((object))) (error "Nao existe essa classe!!")
-  (if (equal? itc (caaar env)) (begin (insert-in-memory (cadr (cadar env)) addr-free) (return-instance (cadr (cadar env)) addr-free))
-
-      (new-instance itc (cdr env) addr-free))
+  (if (equal? obj (caaar env)) (begin (insert-in-memory (cadr (cadar env))) (return-instance (cadr (cadar env)) addr-free))
+      (new-instance obj (cdr env) addr-free))
   )
 )
 ;Retorna para o corpo principal da funcao uma lista com o inicio da instancia e o mapeamento da pos de cada campo
@@ -164,12 +163,11 @@
 
 ;Insere os campos na memoria
 (define
-(insert-in-memory cls start)
+(insert-in-memory cls)
 (if (empty? cls) (println "Instancia criada com sucesso!")
-    (begin (newref (cadr cls)) (list (car cls) start (insert-in-memory (caddr cls) (+ start 1)) )    
+    (begin (newref (cadr cls)) (insert-in-memory (caddr cls)) )    
     )
  )
-)
 ;Define o valor do atributo fld para val na instancia env
 (define
   (set-field fld val env)
@@ -190,21 +188,37 @@
 )
 
 (define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "\nFim do primeiro exemplo\n") )))
-(display "\n- Exemplo exemploDisplay:\n") (value-of exemploDisplay empty-env-class)
+;(display "\n- Exemplo exemploDisplay:\n") (value-of exemploDisplay empty-env-class)
 
 (define exemploDeErroClasseNaoDeclarada '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
 (display "\nFavor descomentar a linha abaixo para executar o exemploDeErro\n")
 ;(display "\n- Exemplo exemploDeErroClasseNaoDeclarada:\n") (value-of exemploDeErroClasseNaoDeclarada empty-env-class)
 
 (define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
-(display "\n- Exemplo mudarCampo:\n") (value-of mudarCampo empty-env-class)
+;(display "\n- Exemplo mudarCampo:\n") (value-of mudarCampo empty-env-class)
 
 (define pegaCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (begin (set-val a 5 c1) (display "\nValor de a na intancia c1: ") (send a c1) ))))
-(display "\n- Exemplo pegaCampo:\n") (value-of pegaCampo empty-env-class)
+;(display "\n- Exemplo pegaCampo:\n") (value-of pegaCampo empty-env-class)
 
-;(get-addr-free)
-;(deref 0)
-;(deref 1)
-;(deref 2)
 (define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
-(display "\n- Exemplo criacaoDeClasse:\n") (value-of criacaoDeClasse empty-env-class)
+;(display "\n- Exemplo criacaoDeClasse:\n") (value-of criacaoDeClasse empty-env-class)
+
+(define pegaCampos
+  '(main_prog (classes (class classe1 extends classe2 (a b c))
+                       (class classe2 extends object (d e f)))
+              (let c1 (new classe1)
+                (begin (display "\nValor de a na intancia c1: ") (set-val a 5 c1) (display "\nValor de b na intancia c1: ") (set-val b 1 c1)
+                       (display "\nValor de a na intancia c1: ")
+                       (send a c1)
+                       (display "\nValor de b na intancia c1: ")
+                       (send b c1)
+                       ))))
+;(display "\n- Exemplo pegaCampos:\n") (value-of pegaCampos empty-env-class)
+
+
+(define newCampo
+  '(main_prog (classes (class classe1 extends classe2 (a b c))
+                       (class classe2 extends object (d e f)))
+              (new classe1)
+                ))
+(display "\n- Exemplo newCampo:\n") (value-of newCampo empty-env-class)
