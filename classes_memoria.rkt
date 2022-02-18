@@ -87,6 +87,7 @@
         [(equal? type 'set-val) (set-field (cadr exp) (caddr exp) Δ)]
         [(equal? type 'send) (send-field (cadr exp) Δ)]
         [(equal? type 'display) (display (cadr exp))]
+        [(equal? type 'cons) (cons (value-of (cadr exp) Δ) (value-of (caddr exp) Δ))]
         
         [else (error "operação não implementada")]))
 
@@ -205,5 +206,5 @@
 (define visualizaObjeto
   '(main_prog (classes (class classe1 extends classe2 (a b c))
                        (class classe2 extends object (d e f)))
-              (begin (new classe1) (new classe2)) ))
+              (cons (new classe1) (new classe2)) ))
 (display "\n- Exemplo visualizaObjeto:\n") (value-of visualizaObjeto empty-env-class)
