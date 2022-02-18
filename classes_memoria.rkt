@@ -1,5 +1,8 @@
 #lang racket
 
+;Matheus Avila Moreira de Paula 201565191C
+;Leonardo Azalim de Oliveira 201965251C
+
 ; Representando um estado como um par: próximo endereço e um vetor
 (define TAM 1000) ; tamanho da memória
 (define σ (cons 0 (make-vector TAM)))
@@ -29,9 +32,6 @@
 (define (get-addr-free)
   (car σ))
 
-;Matheus Avila Moreira de Paula 201565191C
-;Leonardo Azalim de Oliveira 201965251C
-
 ;Definicao do ambiente na forma de lista
 (define empty-env '(empty-env))
 
@@ -47,17 +47,6 @@
 
 (define init-env empty-env)
 
-; call-by-value
-; proc-val :: Var x Expr x Env -> Proc
-#;(define (proc-val var exp Δ)
-  (lambda (val)
-    (value-of exp (extend-env var (newref val) Δ))))
-
-; apply-proc :: Proc x ExpVal -> ExpVal  
-#;(define (apply-proc proc val)
-  (proc val))
-
-
 ; call-by-reference
 (define (proc-val var exp Δ)
   (lambda (val flag)
@@ -69,29 +58,6 @@
 
 (define (apply-proc-ref proc val)
   (proc val #f))
-
-(struct thunk (env exp))
-
-(define p1 '(let p (proc x (set x (lit 4)))
-                (let a (lit 3)
-                  (begin (call (var p) (var a)) (var a)))))
-
-(define p2 '(let f (proc x (set x (lit 44)))
-              (let g (proc y (call (var f) (var y)))
-                (let z (lit 55)
-                  (begin (call (var g) (var z)) (var z))))))
-
-(define p3 '(let swap (proc x (proc y (let temp (var x)
-                                        (begin (set x (var y))
-                                               (set y (var temp))))))
-              (let a (lit 33)
-                (let b (lit 44)
-                  (begin (call (call (var swap) (var a)) (var b))
-                         (dif (var a) (var b)))))))
-
-(define p4 '(letrec loop x (call (var loop) (dif (var x) (lit -1)))
-                    (let f (proc x (lit 7))
-                      (call (var f) (call (var loop) (lit 0))))))
 
 (define (value-of exp Δ)
   (define type (car exp))
@@ -124,12 +90,6 @@
         
         [else (error "operação não implementada")]))
 
-
-; Especificação do comportamento de programas
-(define (value-of-program prog)
-  (empty-store)
-  (value-of (cadr prog) init-env))
-
 ;Definição da semantica de classes
 ;'(classes '(class A extends object '(Fields) '(Methods)) '(class B extends A '(Fields) '(Methods)))
 
@@ -156,32 +116,10 @@
       )
   )
 
-;Funcao backup. Remover se a função que trata fields e methods como um so der certo
 (define (value-of-fields cls pai env)
 (if (empty? cls) '()
     (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
     ))
-
-;Se o 2 elemento for uma lista que comeca com proc extend-env-class o field com o value of do proc. CC faz o que já tá escrito
-(define (value-of-fields2 cls pai env)
-(if (empty? cls)
-    '()
-    (if (and (list? (cadr cls)) (equal? (caadr cls) 'proc))
-        (extend-env-class (car cls) (value-of (cadr cls) env) (value-of-fields (cddr cls) pai env) )
-        (if (and (list? (cadr cls)) (equal? (caadr cls) 'super))
-            ((extend-env-class (car cls) (value-of (cadr cls) (get-pai pai env)) (value-of-fields (cddr cls) pai env) ))
-            (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
-        )
-    )
-  )
-)
-
-; Essa funcao provavelmente sera descartada
-(define (value-of-methods cls env)
-(if (empty? cls) '()
-    (extend-env-class (car cls) (value-of (list 'proc (cadr cls)) env) (value-of-fields (cdr cls) env))
-    )
-  )
 
 ;Coloca cada valor de fields com valor nulo
 (define (value-of-definition cls pai env)
@@ -226,13 +164,11 @@
 (define
 (insert-in-memory cls start)
 (if (empty? cls) (println "Instancia criada com sucesso!")
-    (begin (newref (cadr cls)) (list (car cls) start (insert-in-memory (caddr cls) (+ start 1)) )
-     ;(display cls)      
+    (begin (newref (cadr cls)) (list (car cls) start (insert-in-memory (caddr cls) (+ start 1)) )    
     )
  )
-  ;(display cls)
-  )
-;set
+)
+;Define o valor do atributo fld para val na instancia env
 (define
   (set-field fld val env)
   (if (empty? env) (error "Valor nao existe nessa instancia")
@@ -240,7 +176,7 @@
    (set-field fld val (caddr env)) )
   )
 )
-
+;Procura o campo fld no objeto cls
 (define
   (send-field fld cls)
   (if (empty? cls) (error "O campo escolhido nao é uma variável nem um método")
