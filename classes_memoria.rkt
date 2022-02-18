@@ -225,9 +225,9 @@
 ;Insere os campos na memoria
 (define
 (insert-in-memory cls start)
-(if (empty? cls) (display "Instancia criada com sucesso!")
+(if (empty? cls) (println "Instancia criada com sucesso!")
     (begin (newref (cadr cls)) (list (car cls) start (insert-in-memory (caddr cls) (+ start 1)) )
-           
+     ;(display cls)      
     )
  )
   ;(display cls)
@@ -251,21 +251,22 @@
   )
 )
 
-(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "Fim do primeiro exemplo") )))
-;(value-of exemploDisplay empty-env-class)
+(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "\nFim do primeiro exemplo\n") )))
+(display "\n- Exemplo exemploDisplay:\n") (value-of exemploDisplay empty-env-class)
 
-(define exemploDeErro '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
-;(value-of exemploDeErro empty-env-class)
+(define exemploDeErroClasseNaoDeclarada '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
+(display "\nFavor descomentar a linha abaixo para executar o exemploDeErro\n")
+;(display "\n- Exemplo exemploDeErroClasseNaoDeclarada:\n") (value-of exemploDeErroClasseNaoDeclarada empty-env-class)
 
 (define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
-;(value-of mudarCampo empty-env-class)
+(display "\n- Exemplo mudarCampo:\n") (value-of mudarCampo empty-env-class)
 
-(define pegaCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (begin (set-val a 5 c1) (send a c1) ))))
-(value-of pegaCampo empty-env-class)
+(define pegaCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (begin (set-val a 5 c1) (display "\nValor de a na intancia c1: ") (send a c1) ))))
+(display "\n- Exemplo pegaCampo:\n") (value-of pegaCampo empty-env-class)
 
 ;(get-addr-free)
 ;(deref 0)
 ;(deref 1)
 ;(deref 2)
 (define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
-;(value-of criacaoDeClasse empty-env-class)
+(display "\n- Exemplo criacaoDeClasse:\n") (value-of criacaoDeClasse empty-env-class)
