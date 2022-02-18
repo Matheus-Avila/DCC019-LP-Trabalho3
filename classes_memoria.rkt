@@ -119,7 +119,7 @@
         [(equal? type 'main_prog) (value-of (caddr exp) (value-of (cadr exp) Δ))]
         [(equal? type 'new) (new-instance (cadr exp) Δ (get-addr-free))]
         [(equal? type 'set-val) (set-field (cadr exp) (caddr exp) Δ)]
-        [(equal? type 'send) (send (cadr exp) Δ)]
+        [(equal? type 'send) (send-field (cadr exp) Δ)]
         [(equal? type 'display) (display (cadr exp))]
         
         [else (error "operação não implementada")]))
@@ -132,15 +132,6 @@
 
 ;Definição da semantica de classes
 ;'(classes '(class A extends object '(Fields) '(Methods)) '(class B extends A '(Fields) '(Methods)))
-
-(define (send fld cls)
-  (if (empty? cls) (error "O campo escolhido nao é uma variável nem um método")
-      (if (equal? fld (car cls))
-          (deref (cadr cls))
-          (send (cddr cls) fld)
-      )
-  )
-)
 
 (define (get-pai nome env)
 (if (empty? env)
@@ -250,23 +241,31 @@
   )
 )
 
+(define
+  (send-field fld cls)
+  (if (empty? cls) (error "O campo escolhido nao é uma variável nem um método")
+      (if (equal? fld (car cls))
+          (deref (cadr cls))
+          (send-field fld (caddr cls))
+      )
+  )
+)
+
 (define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "Fim do primeiro exemplo") )))
-(value-of exemploDisplay empty-env-class)
-(get-addr-free)
-(deref 0)
-(deref 1)
-(deref 2)
+;(value-of exemploDisplay empty-env-class)
+
 (define exemploDeErro '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
 ;(value-of exemploDeErro empty-env-class)
 
 (define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
-(value-of mudarCampo empty-env-class)
+;(value-of mudarCampo empty-env-class)
 
-(get-addr-free)
-(deref 3)
-(define pegaCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (send c1 a) )))
-;(value-of pegaCampo empty-env-class)
+(define pegaCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (begin (set-val a 5 c1) (send a c1) ))))
+(value-of pegaCampo empty-env-class)
 
-
+;(get-addr-free)
+;(deref 0)
+;(deref 1)
+;(deref 2)
 (define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
 ;(value-of criacaoDeClasse empty-env-class)
