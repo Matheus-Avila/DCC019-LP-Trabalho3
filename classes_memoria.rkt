@@ -118,7 +118,7 @@
 
 (define (value-of-fields cls pai env)
 (if (empty? cls) '()
-    (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
+    (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env))
     ))
 
 ;Coloca cada valor de fields com valor nulo
@@ -130,7 +130,9 @@
 ;'(class A extends object ... )
 ;Associa '(A object) com Fields e Methods
 (define (value-of-class cls env)
+  (if (and (equal? (car cls) 'class) (equal? (caddr cls) 'extends))
  (extend-env-class (list (cadr cls) (cadddr cls)) (value-of-definition (cddddr cls) (cadddr cls) env) env)
+ (error "Erro nas palavras chave classe ou extends"))
   )
 
 ;'(classes '(A) '(B))
