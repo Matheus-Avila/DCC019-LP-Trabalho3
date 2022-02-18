@@ -148,7 +148,8 @@
 ; (cadar env) = (fields (a 0 (b 0 (c 0 ()))) ())
 (define
 (new-instance obj env addr-free)
-  (if (equal? env '((object))) (error "Nao existe essa classe!!")
+  ;(if (equal? env '((object))) (error "Classe inexistente! Nao e possivel instanciar o objeto")
+  (if (empty? env) (error "Classe inexistente!\nNao foi possivel instanciar o objeto")
   (if (equal? obj (caaar env)) (begin (insert-in-memory (cadr (cadar env))) (return-instance (cadr (cadar env)) addr-free))
       (new-instance obj (cadr env) addr-free))
   )
@@ -188,24 +189,25 @@
       )
   )
 )
-
+; Exemplos de execucao
+; Exemplo 1
 (define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "\nFim do primeiro exemplo\n") )))
-;(display "\n- Exemplo exemploDisplay:\n") (value-of exemploDisplay empty-env-class)
-
+(display "\n- Exemplo exemploDisplay:\n") (value-of exemploDisplay empty-env-class)
+; Exemplo 2
 (define exemploDeErroClasseNaoDeclarada '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
-(display "\nFavor descomentar a linha abaixo para executar o exemploDeErro\n")
+(display "\nFavor descomentar a linha abaixo para executar o exemploDeErroClasseNaoDeclarada\n")
 ;(display "\n- Exemplo exemploDeErroClasseNaoDeclarada:\n") (value-of exemploDeErroClasseNaoDeclarada empty-env-class)
-
+; Exemplo 3
 (define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
-;(display "\n- Exemplo mudarCampo:\n") (value-of mudarCampo empty-env-class)
-
+(display "\n- Exemplo mudarCampo:\n") (value-of mudarCampo empty-env-class)
+; Exemplo 4
 (define pegaCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (begin (set-val a 5 c1) (display "\nValor de a na intancia c1: ") (send a c1) ))))
-;(display "\n- Exemplo pegaCampo:\n") (value-of pegaCampo empty-env-class)
-
+(display "\n- Exemplo pegaCampo:\n") (value-of pegaCampo empty-env-class)
+; Exemplo 5
 (define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
-;(display "\n- Exemplo criacaoDeClasse:\n") (value-of criacaoDeClasse empty-env-class)
-
-(define pegaCampos
+(display "\n- Exemplo criacaoDeClasse:\n") (value-of criacaoDeClasse empty-env-class)
+; Exemplo 6
+(define subtraiCampos
   '(main_prog (classes (class classe1 extends classe2 (a b c))
                        (class classe2 extends object (d e f)))
               (let c1 (new classe1)
@@ -213,14 +215,10 @@
                        (display "\nDiferença entre os valores 'a' e 'b' na intancia c1: ")
                        (dif (send a c1) (send b c1))
                        ))))
-(display "\n- Exemplo pegaCampos:\n") (value-of pegaCampos empty-env-class)
-
+(display "\n- Exemplo subtraiCampos:\n") (value-of subtraiCampos empty-env-class)
+; Exemplo 7
 (define visualizaObjeto
   '(main_prog (classes (class classe1 extends classe2 (a b c))
                        (class classe2 extends object (d e f)))
-              (begin
-                (new classe1)
-                (new classe2)
-                )
-                ))
-;(display "\n- Exemplo visualizaObjeto:\n") (value-of visualizaObjeto empty-env-class)
+              (begin (new classe1) (new classe2)) ))
+(display "\n- Exemplo visualizaObjeto:\n") (value-of visualizaObjeto empty-env-class)
