@@ -96,28 +96,14 @@
 (define (value-of exp Δ)
   (define type (car exp))
   (cond [(equal? type 'lit) (cadr exp)]
-        ; call-by-value e call-by-reference
-        ;[(equal? type 'var) (deref (apply-env Δ (cadr exp)))]
-        ; call-by-name
-        [(equal? type 'var) (define v (cadr exp))
-                            (if (thunk? v) (value-of (thunk-exp v) (thunk-env v))
-                                (deref (apply-env Δ v)))]
+        [(equal? type 'var) (apply-env Δ (cadr exp))]
         [(equal? type 'dif) (- (value-of (cadr exp) Δ) (value-of (caddr exp) Δ))]
         [(equal? type 'zero?) (= (value-of (cadr exp) Δ) 0)]
-        [(equal? type 'let) (value-of (cadddr exp) (extend-env (cadr exp) (newref (value-of (caddr exp) Δ)) Δ))]
+        [(equal? type 'let) (value-of (cadddr exp) (extend-env (cadr exp) (value-of (caddr exp) Δ)  Δ))]
         [(equal? type 'if) (if (value-of (cadr exp) Δ)
                                (value-of (caddr exp) Δ) (value-of (cadddr exp) Δ))]
         [(equal? type 'proc) (proc-val (cadr exp) (caddr exp) Δ)]
-        ; call-by-value
-        ;[(equal? type 'call) (apply-proc (value-of (cadr exp) Δ) (value-of (caddr exp) Δ))]
-        ; call-by-reference
-        #;[(equal? type 'call) (if (equal? (car (caddr exp)) 'var)
-                                 (apply-proc-ref (value-of (cadr exp) Δ) (apply-env Δ (cadr (caddr exp))))
-                                 (apply-proc (value-of (cadr exp) Δ) (value-of (caddr exp) Δ)))]
-        ;call-by-name
-        [(equal? type 'call) (if (equal? (car (caddr exp)) 'var)
-                                 (apply-proc-ref (value-of (cadr exp) Δ) (apply-env Δ (cadr (caddr exp))))
-                                 (apply-proc (value-of (cadr exp) Δ) (thunk Δ (caddr exp))))]
+        [(equal? type 'call) (apply-proc (value-of (cadr exp) Δ) (value-of (caddr exp) Δ))]
         
         [(equal? type 'letrec) (value-of (car (cddddr exp)) (extend-env-rec (cadr exp) (caddr exp) (cadddr exp) Δ))]
 
@@ -134,6 +120,7 @@
         [(equal? type 'new) (new-instance (cadr exp) Δ)]
         [(equal? type 'set-val) (set-field (cadr exp) (caddr exp) Δ)]
         [(equal? type 'send) (send (cadr exp) (caddr exp) Δ)]
+        [(equal? type 'display) (display (cadr exp))]
         
         [else (error "operação não implementada")]))
 
@@ -181,7 +168,7 @@
 ;Funcao backup. Remover se a função que trata fields e methods como um so der certo
 (define (value-of-fields cls pai env)
 (if (empty? cls) '()
-    (extend-env-class (car cls) '(lit 0) (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
+    (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
     ))
 
 ;Se o 2 elemento for uma lista que comeca com proc extend-env-class o field com o value of do proc. CC faz o que já tá escrito
@@ -192,7 +179,7 @@
         (extend-env-class (car cls) (value-of (cadr cls) env) (value-of-fields (cddr cls) pai env) )
         (if (and (list? (cadr cls)) (equal? (caadr cls) 'super))
             ((extend-env-class (car cls) (value-of (cadr cls) (get-pai pai env)) (value-of-fields (cddr cls) pai env) ))
-            (extend-env-class (car cls) '(lit 0) (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
+            (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env));trocar lit 0 por 0 se der errado
         )
     )
   )
@@ -227,10 +214,11 @@
 ;itc = classe
 ;(caaar env) = Nome da classe que estou olhando agora
 ;(cdar env) = Lista com os Fields da classe
+; (cadar env) = (fields (a 0 (b 0 (c 0 ()))) ())
 (define
 (new-instance itc env)
   (if (equal? env '((object))) (error "Nao existe essa classe!!")
-  (if (equal? itc (caaar env)) (insert-in-memory (cdar env) (get-addr-free)) (new-instance itc (cdr env)))
+  (if (equal? itc (caaar env)) (insert-in-memory (cadr (cadar env)) (get-addr-free)) (new-instance itc (cdr env)))
   )
 )
 
@@ -238,9 +226,11 @@
 (define
 (insert-in-memory cls start)
 (if (empty? cls) (display "Instancia criada com sucesso!")
-    (begin (newref (cadr cls)) (list (car cls) start (insert-in-memory (cddr cls) (+ start 1)) )
-           )
+    (begin (newref (cadr cls)) (list (car cls) start (insert-in-memory (caddr cls) (+ start 1)) )
+           
+    )
  )
+  ;(display cls)
   )
 ;set
 (define
@@ -249,7 +239,7 @@
   (if (equal? fld (car env)) (list fld val (caddr env)) ;"troca o valor associado a fld para val"
    (set-field fld val (caddr env)) )
   )
-  )
+)
 
 ; Exemplos de expressões IREF
 #;(define ex1 '(let g (let count (lit 0)
@@ -278,8 +268,11 @@
 
 
 (define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "o objeto foi criado!") )))
-;(value-of exemploDisplay empty-env-class)
-
+(value-of exemploDisplay empty-env-class)
+(get-addr-free)
+(deref 0)
+(deref 1)
+(deref 2)
 (define exemploDeErro '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classeNaoDeclarada) (set-val a 2 c1) )))
 ;(value-of exemploDeErro empty-env-class)
 
