@@ -128,7 +128,7 @@
   )
 
 ;'(classes '(A) '(B))
-; Add a classe A no env em que Add B no env vazio('(object))
+; Add a classe A no env em que Add B no env vazio e termina incluindo a classe object
 (define (add-classes cls env)
   (if (empty? cls) env
   (list (value-of-class (car cls) env) (add-classes (cdr cls) env) '(object))))
@@ -158,11 +158,11 @@
       (begin (newref (cadr cls)) (insert-in-memory (caddr cls)) )    
     )
  )
-;Define o valor do atributo fld para val na instancia env
-(define (set-field fld val env)
-  (if (empty? env) (error "Valor nao existe nessa instancia")
-      (if (equal? fld (car env)) (setref! (cadr env) val)
-          (set-field fld val (caddr env))
+;Define o valor do atributo fld para val na instancia obj
+(define (set-field fld val obj)
+  (if (empty? obj) (error "Valor nao existe nessa instancia")
+      (if (equal? fld (car obj)) (setref! (cadr obj) val)
+          (set-field fld val (caddr obj))
       )
   )
 )
