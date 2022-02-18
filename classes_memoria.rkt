@@ -109,7 +109,7 @@
   (list var value env)
   )
 
-(define (apply-env-class env var)
+#;(define (apply-env-class env var)
   (if (equal? 'empty-env-class (car env)) (error "Env vazio!")
       (if (equal? var (cadr env)) (caddr env)
           (apply-env-class (cadddr env) var))
@@ -117,9 +117,8 @@
   )
 
 (define (value-of-fields cls pai env)
-(if (empty? cls) '()
-    (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env))
-    ))
+  (if (empty? cls) '()
+      (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env)) ))
 
 ;Coloca cada valor de fields com valor nulo
 (define (value-of-definition cls pai env)
@@ -131,13 +130,12 @@
 ;Associa '(A object) com Fields e Methods
 (define (value-of-class cls env)
   (if (and (equal? (car cls) 'class) (equal? (caddr cls) 'extends))
- (extend-env-class (list (cadr cls) (cadddr cls)) (value-of-definition (cddddr cls) (cadddr cls) env) env)
- (error "Erro nas palavras chave classe ou extends"))
+      (extend-env-class (list (cadr cls) (cadddr cls)) (value-of-definition (cddddr cls) (cadddr cls) env) env)
+      (error "Erro nas palavras chave classe ou extends"))
   )
 
 ;'(classes '(A) '(B))
 ; Add a classe A no env em que Add B no env vazio('(object))
-
 (define (add-classes cls env)
   (if (empty? cls) env
   (list (value-of-class (car cls) env) (add-classes (cdr cls) env) '(object))))
@@ -146,45 +144,39 @@
 ;(caaar env) = Nome da classe que estou olhando agora
 ;(cdar env) = Lista com os Fields da classe
 ; (cadar env) = (fields (a 0 (b 0 (c 0 ()))) ())
-(define
-(new-instance obj env addr-free)
-  ;(if (equal? env '((object))) (error "Classe inexistente! Nao e possivel instanciar o objeto")
+(define (new-instance obj env addr-free)
   (if (empty? env) (error "Classe inexistente!\nNao foi possivel instanciar o objeto")
-  (if (equal? obj (caaar env)) (begin (insert-in-memory (cadr (cadar env))) (return-instance (cadr (cadar env)) addr-free))
-      (new-instance obj (cadr env) addr-free))
+      (if (equal? obj (caaar env))
+          (begin (insert-in-memory (cadr (cadar env))) (return-instance (cadr (cadar env)) addr-free))
+          (new-instance obj (cadr env) addr-free))
   )
 )
 
 ;Retorna para o corpo principal da funcao uma lista com o inicio da instancia e o mapeamento da pos de cada campo
-(define
-(return-instance cls addr-free)
-  ;(display cls)
+(define (return-instance cls addr-free)
   (if (empty? cls) '()
-  (list (car cls) addr-free (return-instance (caddr cls) (+ addr-free 1)))
+      (list (car cls) addr-free (return-instance (caddr cls) (+ addr-free 1)))
   )
 )
 
 ;Insere os campos na memoria
-(define
-(insert-in-memory cls)
-(if (empty? cls) (println "Instancia criada com sucesso!")
-    (begin (newref (cadr cls)) (insert-in-memory (caddr cls)) )    
+(define (insert-in-memory cls)
+  (if (empty? cls) (println "Instancia criada com sucesso!")
+      (begin (newref (cadr cls)) (insert-in-memory (caddr cls)) )    
     )
  )
 ;Define o valor do atributo fld para val na instancia env
-(define
-  (set-field fld val env)
+(define (set-field fld val env)
   (if (empty? env) (error "Valor nao existe nessa instancia")
-  (if (equal? fld (car env)) (setref! (cadr env) val)
-   (set-field fld val (caddr env)) )
+      (if (equal? fld (car env)) (setref! (cadr env) val)
+          (set-field fld val (caddr env))
+      )
   )
 )
 ;Procura o campo fld no objeto cls
-(define
-  (send-field fld cls)
+(define (send-field fld cls)
   (if (empty? cls) (error "O campo escolhido nao é uma variável nem um método")
-      (if (equal? fld (car cls))
-          (deref (cadr cls))
+      (if (equal? fld (car cls)) (deref (cadr cls))
           (send-field fld (caddr cls))
       )
   )
