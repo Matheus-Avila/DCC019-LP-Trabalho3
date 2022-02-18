@@ -109,13 +109,6 @@
   (list var value env)
   )
 
-#;(define (apply-env-class env var)
-  (if (equal? 'empty-env-class (car env)) (error "Env vazio!")
-      (if (equal? var (cadr env)) (caddr env)
-          (apply-env-class (cadddr env) var))
-      )
-  )
-
 (define (value-of-fields cls pai env)
   (if (empty? cls) '()
       (extend-env-class (car cls) 0 (value-of-fields (cdr cls) pai env)) ))
