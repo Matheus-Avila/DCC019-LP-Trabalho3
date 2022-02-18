@@ -117,9 +117,9 @@
                                      (cddr exp))]
         [(equal? type 'classes) (add-classes (cdr exp) Δ)]
         [(equal? type 'main_prog) (value-of (caddr exp) (value-of (cadr exp) Δ))]
-        [(equal? type 'new) (new-instance (cadr exp) Δ)]
+        [(equal? type 'new) (new-instance (cadr exp) Δ (get-addr-free))]
         [(equal? type 'set-val) (set-field (cadr exp) (caddr exp) Δ)]
-        [(equal? type 'send) (send (cadr exp) (caddr exp) Δ)]
+        [(equal? type 'send) (send (cadr exp) Δ)]
         [(equal? type 'display) (display (cadr exp))]
         
         [else (error "operação não implementada")]))
@@ -133,10 +133,10 @@
 ;Definição da semantica de classes
 ;'(classes '(class A extends object '(Fields) '(Methods)) '(class B extends A '(Fields) '(Methods)))
 
-(define (send cls fld)
+(define (send fld cls)
   (if (empty? cls) (error "O campo escolhido nao é uma variável nem um método")
       (if (equal? fld (car cls))
-          (cadr cls)
+          (deref (cadr cls))
           (send (cddr cls) fld)
       )
   )
@@ -216,13 +216,22 @@
 ;(cdar env) = Lista com os Fields da classe
 ; (cadar env) = (fields (a 0 (b 0 (c 0 ()))) ())
 (define
-(new-instance itc env)
+(new-instance itc env addr-free)
   (if (equal? env '((object))) (error "Nao existe essa classe!!")
-  (if (equal? itc (caaar env)) (insert-in-memory (cadr (cadar env)) (get-addr-free)) (new-instance itc (cdr env)))
+  (if (equal? itc (caaar env)) (begin (insert-in-memory (cadr (cadar env)) addr-free) (return-instance (cadr (cadar env)) addr-free))
+
+      (new-instance itc (cdr env) addr-free))
+  )
+)
+;Retorna para o corpo principal da funcao uma lista com o inicio da instancia e o mapeamento da pos de cada campo
+(define
+(return-instance cls addr-free)
+  (if (empty? cls) '()
+  (list (car cls) addr-free (return-instance (cdr cls) (+ addr-free 1)))
   )
 )
 
-;Se der errado tentar fazer usando uma variável para guardar a lista
+;Insere os campos na memoria
 (define
 (insert-in-memory cls start)
 (if (empty? cls) (display "Instancia criada com sucesso!")
@@ -236,38 +245,12 @@
 (define
   (set-field fld val env)
   (if (empty? env) (error "Valor nao existe nessa instancia")
-  (if (equal? fld (car env)) (list fld val (caddr env)) ;"troca o valor associado a fld para val"
+  (if (equal? fld (car env)) (setref! (cadr env) val)
    (set-field fld val (caddr env)) )
   )
 )
 
-; Exemplos de expressões IREF
-#;(define ex1 '(let g (let count (lit 0)
-                      (proc dummy (begin (set count (dif (var count) (lit -1)))
-                                         (var count))))
-               (let a (call (var g) (lit 11))
-                 (let b (call (var g) (lit 11))
-                   (dif (var a) (var b))))))
-
-;(value-of ex1 init-env)
-
-#;(define ex2 '(program
-              (letrec fun x (if (zero? (var x)) (lit 0)
-                                (dif (var x)
-                                     (dif (lit 0)
-                                          (call (var fun) (dif (var x) (lit 1))))))
-                      (call (var fun) (lit 3)))))
-
-;(value-of-program ex2)
-
-
-;(value-of p1 init-env)
-;(value-of p2 init-env)
-;(value-of p3 init-env)
-;(value-of p4 init-env)
-
-
-(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "o objeto foi criado!") )))
+(define exemploDisplay '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (display "Fim do primeiro exemplo") )))
 (value-of exemploDisplay empty-env-class)
 (get-addr-free)
 (deref 0)
@@ -277,7 +260,13 @@
 ;(value-of exemploDeErro empty-env-class)
 
 (define mudarCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (set-val a 2 c1) )))
-;(value-of mudarCampo empty-env-class)
+(value-of mudarCampo empty-env-class)
+
+(get-addr-free)
+(deref 3)
+(define pegaCampo '(main_prog (classes (class classe1 extends classe2 (a b c)) (class classe2 extends object (d e f))) (let c1 (new classe1) (send c1 a) )))
+;(value-of pegaCampo empty-env-class)
+
 
 (define criacaoDeClasse '(classes (class classe1 extends object (a b c))))
 ;(value-of criacaoDeClasse empty-env-class)
